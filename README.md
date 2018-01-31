@@ -1,6 +1,6 @@
 # NewsRSS
 
-News app that parses XML data from RSS sources. 
+News app that parses XML data from RSS sources.
 
 ## Screenshot
 
@@ -11,4 +11,5 @@ News app that parses XML data from RSS sources.
 * Data is displayed in UITableView
 * TabBar is MDCTabBar from MaterialComponents library
 * Pull to refresh function to update table view data
-* tapped news item opens up in SFSafariViewController
+* Tapped news item opens up in SFSafariViewController
+* Support for iOS 10.3 and 11.2

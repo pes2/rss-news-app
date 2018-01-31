@@ -17,6 +17,7 @@ class ViewController: UIViewController {
     
     var tabBar = MDCTabBar()
     var rssItems: [RSSItem]?
+    var refreshControl: UIRefreshControl!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,6 +29,23 @@ class ViewController: UIViewController {
         articlesTableView.dataSource = self
         
         refreshContent()
+        
+        configurePullToRefreshControl()
+        
+    }
+    
+    func configurePullToRefreshControl() {
+        // Refresh Control on TableView
+        refreshControl = UIRefreshControl()
+        refreshControl?.tintColor = .lightGray
+        refreshControl?.backgroundColor = UIColor.rgb(red: 246, green: 246, blue: 246)
+        refreshControl?.addTarget(self, action: #selector(refreshContent), for: .valueChanged)
+        
+        if #available(iOS 10.0, *) {
+            articlesTableView.refreshControl = refreshControl
+        } else {
+            articlesTableView.addSubview(refreshControl!)
+        }
     }
     
     func configureTabBar() {
@@ -40,8 +58,8 @@ class ViewController: UIViewController {
         
         tabBar.selectedItem = tabBar.items[0]
         
-        tabBar.selectedItemTintColor = UIColor.white
-        tabBar.unselectedItemTintColor = UIColor.lightGray
+        tabBar.selectedItemTintColor = .white
+        tabBar.unselectedItemTintColor = .lightGray
         
         tabBar.barTintColor = UIColor.rgb(red: 43, green: 79, blue: 133)
         
@@ -72,9 +90,9 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         cell.separatorInset = UIEdgeInsets.zero
         cell.layoutMargins = UIEdgeInsets.zero
         
-        print("rssItems.count: \(rssItems?.count ?? -99) - indexPath.item: \(indexPath.item)")
+        //print("rssItems.count: \(rssItems?.count ?? -99) - indexPath.item: \(indexPath.item)")
         
-        if let item = rssItems?[indexPath.item] { // Index out of range
+        if let item = rssItems?[indexPath.item] {
             cell.item = item
         }
         return cell
@@ -92,10 +110,9 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     }
 }
 
-
 // MARK: Update contend and fetch data
 extension ViewController {
-    func refreshContent() {
+    @objc func refreshContent() {
         guard let selectedItem = tabBar.selectedItem else { return }
         
         let source = NewsSource.allValues[selectedItem.tag]
@@ -116,6 +133,7 @@ extension ViewController {
             OperationQueue.main.addOperation {
                 self.articlesTableView.reloadData()
                 self.articlesTableView.contentOffset = .zero
+                self.refreshControl.endRefreshing()
             }
         }
     }

@@ -13,14 +13,21 @@ import SafariServices
 class ViewController: UIViewController {
     
     @IBOutlet weak var mainTabBar: UIView!
+    @IBOutlet weak var articlesTableView: UITableView!
     
     var tabBar = MDCTabBar()
+    var rssItems: [RSSItem]?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         configureTabBar()
         
         navigationItem.title = "NewsRSS"
+        
+        articlesTableView.delegate = self
+        articlesTableView.dataSource = self
+        
+        refreshContent()
     }
     
     func configureTabBar() {
@@ -45,15 +52,80 @@ class ViewController: UIViewController {
         self.mainTabBar.addSubview(tabBar)
     }
     
-
-    
 }
 
+// MARK: UITableViewDataSource, UITableViewDelegate
+extension ViewController: UITableViewDataSource, UITableViewDelegate {
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        guard let rssItems = rssItems else { return 0 }
+        return rssItems.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! NewsCell
+        
+        cell.preservesSuperviewLayoutMargins = false
+        cell.separatorInset = UIEdgeInsets.zero
+        cell.layoutMargins = UIEdgeInsets.zero
+        
+        print("rssItems.count: \(rssItems?.count ?? -99) - indexPath.item: \(indexPath.item)")
+        
+        if let item = rssItems?[indexPath.item] { // Index out of range
+            cell.item = item
+        }
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let rowSelected = rssItems![indexPath.row]
+        
+        guard let url = URL(string: rowSelected.webURL) else { return }
+        
+        let config = SFSafariViewController.Configuration()
+        config.entersReaderIfAvailable = true
+        let safariVC = SFSafariViewController(url: url, configuration: config)
+        self.present(safariVC, animated: true, completion: nil)
+    }
+}
+
+
+// MARK: Update contend and fetch data
+extension ViewController {
+    func refreshContent() {
+        guard let selectedItem = tabBar.selectedItem else { return }
+        
+        let source = NewsSource.allValues[selectedItem.tag]
+        fetchData(tag: source.rawValue)
+    }
+    
+    func showError() {
+        print("Error...")
+    }
+    
+    func fetchData(tag: String) {
+        
+        let urlSring = "https://feeds.yle.fi/uutiset/v1/\(tag)"
+        
+        FeedParser.sharedInstance.parseFeed(url: urlSring) { (rssItems) in
+            self.rssItems = rssItems
+            
+            OperationQueue.main.addOperation {
+                self.articlesTableView.reloadData()
+                self.articlesTableView.contentOffset = .zero
+            }
+        }
+    }
+    
+}
 
 // MARK: MDCTabBarDelegate
 extension ViewController: MDCTabBarDelegate {
     
     func tabBar(_ tabBar: MDCTabBar, didSelect item: UITabBarItem) {
-        
+        refreshContent()
     }
 }

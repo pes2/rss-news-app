@@ -104,9 +104,15 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         
         guard let url = URL(string: rowSelected.webURL) else { return }
         
+        /*
         let config = SFSafariViewController.Configuration()
         config.entersReaderIfAvailable = true
+        config.barCollapsingEnabled = true
         let safariVC = SFSafariViewController(url: url, configuration: config)
+        self.present(safariVC, animated: true, completion: nil)
+        */
+        
+        let safariVC = SFSafariViewController(url: url, entersReaderIfAvailable: true)
         self.present(safariVC, animated: true, completion: nil)
     }
 }

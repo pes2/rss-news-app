@@ -24,6 +24,7 @@ class ViewController: UIViewController {
         configureTabBar()
         
         navigationItem.title = "NewsRSS"
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
         articlesTableView.delegate = self
         articlesTableView.dataSource = self
